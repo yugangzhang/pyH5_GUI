@@ -7,6 +7,6 @@ python XSH5View.py
 
 ## Screenshot
 
-![hdf5 browser] (https://raw.github.com/{yugangzhang}/{pyH5_GUI}/{master}/{images/browser.png})
+![hdf5 browser] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/browser.png)
 
  
