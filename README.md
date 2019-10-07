@@ -7,6 +7,6 @@ python XSH5View.py
 
 ## Screenshot
 
-![] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/browser.png)
+![GUI] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/browser.png "a screenshot for the gui")
 
  
