@@ -8,5 +8,6 @@ python XSH5View.py
 ## Screenshot
 
 ![GUI] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/browser.png "a screenshot for the gui")
-
- 
+![GUI] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/compare_curves.png "compare curves")
+![GUI] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/img1.png "two-D image")
+![GUI] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/img2.png "two-D image") 
