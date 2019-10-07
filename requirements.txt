@@ -1,0 +1,6 @@
+numpy
+matplotlib
+pandas
+#more package to be added
+
+
