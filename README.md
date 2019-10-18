@@ -5,6 +5,10 @@ A GUI to visualize hierarchical h5 files. Primarily, the GUI is designed to show
 source activate (the env)\
 python XSH5View.py
 
+## How to uncompress the tar.gz file
+tar -xvf test.tar.gz
+tar -xvf test.tar
+
 ## Screenshot
 
 ![GUI] (https://raw.github.com/yugangzhang/pyH5_GUI/master/images/browser.png "a screenshot for the gui")\
