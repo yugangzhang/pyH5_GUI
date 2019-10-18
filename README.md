@@ -6,7 +6,7 @@ source activate (the env)\
 python XSH5View.py
 
 ## How to uncompress the tar.gz file
-tar -xvf test.tar.gz
+tar -xvf test.tar.gz\
 tar -xvf test.tar
 
 ## Screenshot
