@@ -9,7 +9,7 @@ source ~/.bashrc\
 conda create --name pyGUI python=3\
 conda activate pyGUI\
 pip install numpy   pyqt5 h5py  pyqtgraph  PyOpenGL  tables pandas\
-conda install matplotlib \
+conda install matplotlib
 
 ## How to use
 source activate pyGUI\
