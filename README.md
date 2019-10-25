@@ -3,8 +3,8 @@ A GUI to visualize hierarchical h5 files. Primarily, the GUI is designed to show
 
 ## How to install
 wget https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh\
-chmod +x Anaconda3-2019.03-Linux-x86_64.sh \
-./Anaconda3-2019.03-Linux-x86_64.sh \
+chmod +x Anaconda3-2019.03-Linux-x86_64.sh\
+./Anaconda3-2019.03-Linux-x86_64.sh\
 source ~/.bashrc\
 conda create --name pyGUI python=3\
 conda activate pyGUI\
