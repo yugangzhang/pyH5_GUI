@@ -1,6 +1,7 @@
 numpy
 matplotlib
 pandas
+logger
 #more package to be added
 
 
