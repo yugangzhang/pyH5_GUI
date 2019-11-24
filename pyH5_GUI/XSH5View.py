@@ -36,36 +36,28 @@ from Plot import *
 
 class mainWindow(QMainWindow):
     def __init__(self):
-        super(mainWindow, self).__init__()
-        
-        #self.filename_dict = {}
-        #self.hdf5_file_dict = {}
-        #self.file_items_dict = {}
-        #self.file_items = []     
+        super(mainWindow, self).__init__() 
         
         self.full_filename_dict = {}  # {    full_filename:  group_name   }
-        self.group_dict = {}  # {     group_name: [ ff1, ff2],    }
+        self.group_name_dict = {}  #group name dict, not necessary now?
         self.current_full_filename = None  #current selected full filename
-        slef.current_hdf5 = None   #open(  self.current_full_filename, r )
+        self.current_hdf5 = None   #open(  self.current_full_filename, r )
+        self.current_hdf5_item = None 
         self.current_group_name = None
-        
-        #self.hdf5_file_dict = {} #
-        #self.file_items_dict = {}
-        #self.file_items = []          
-        
         self.current_base_filename = ''  #current selected   base filename
-        self.current_item_name = ''      #current selected item name
+        self.current_item_path = ''      #current item full path. /io/md/...
+        self.current_item_name = ''      #current selected item name  md
         
-        
-        self.text = ''
+        self.legend = None           
         self.values = np.array([])
-        
+        self.logX_plot = False
+        self.logY_plot = False
         
         self.X = None        
         self.guiplot_count=0
         self.image_plot_count=0
         self.plot_type= 'curve'
-        self.legend = None
+        
         self.colormap_string = 'jet'
         self.colorscale_string = 'log'
         self.show_image_data = False
@@ -79,6 +71,7 @@ class mainWindow(QMainWindow):
         self.image_data_keys = ['avg_img', 'mask', 'pixel_mask', 'roi_mask', 'g12b']
         self.pds_keys = [ 'g2_fit_paras','g2b_fit_paras', 'spec_km_pds', 'spec_pds', 'qr_1d_pds'] 
         #####################       
+        
         self.PWT= PlotWidget(self)
         self.initialise_user_interface()
         
@@ -111,6 +104,8 @@ class mainWindow(QMainWindow):
         self.plot_surface_button = self.add_plot_surface_button()        
         self.setX_button = self.add_setX_button()
         self.resetX_button = self.add_resetX_button()
+        self.setlogX_box = self.add_setlogX_box()
+        self.setlogY_box = self.add_setlogY_box()
         #self.clr_plot_checkbox = self.add_clr_plot_box()
         self.clr_plot_button = self.add_clr_plot_button()
         self.resizeEvent = self.onresize
@@ -119,9 +114,7 @@ class mainWindow(QMainWindow):
         self.filename_label =  QLabel('H5FileName')
         ## Add plot window
         self.guiplot = pg.PlotWidget()
-        #self.guiplot = pg.ImageView()
-        self.imageCrossHair=QLabel()
-        self.imageCrossHair.setAlignment(Qt.AlignRight|Qt.AlignVCenter)           
+        #self.guiplot = pg.ImageView()        
         # Add the created layouts and widgets to the window
         grid.addLayout(self.open_button,        1, 0, 1, 1,  QtCore.Qt.AlignLeft)       
         grid.addLayout(self.dataset_type_box,    1, 0, 1, 1, QtCore.Qt.AlignRight)
@@ -130,7 +123,11 @@ class mainWindow(QMainWindow):
         grid.addLayout(self.plot_surface_button, 1, 3, 1, 1,QtCore.Qt.AlignLeft)
         grid.addLayout(self.clr_plot_button,     1, 4, 1, 1, QtCore.Qt.AlignLeft)  
         grid.addLayout(self.setX_button, 1, 8, 1, 1,QtCore.Qt.AlignLeft)
-        grid.addLayout(self.resetX_button, 2, 8, 1, 1,QtCore.Qt.AlignLeft)        
+        grid.addLayout(self.resetX_button, 2, 8, 1, 1,QtCore.Qt.AlignLeft)  
+        
+        grid.addLayout(self.setlogX_box, 1, 7, 1, 1,QtCore.Qt.AlignLeft)
+        grid.addLayout(self.setlogY_box, 2, 7, 1, 1,QtCore.Qt.AlignLeft)  
+        
         grid.addWidget(self.filename_label, 2, 0, 1, 1)
         #filename list
         #grid.addLayout(self.file_items_list.layout, 4, 0, 3, 1)
@@ -138,11 +135,12 @@ class mainWindow(QMainWindow):
         #data dataset table
         grid.addLayout(self.dataset_table.layout, 4, 1, 1, 8)
         ## Add guiplot window
-        grid.addWidget(self.guiplot, 5,  1,  4,   8 )
-        grid.addWidget(self.imageCrossHair, 9, 1, 1,1 )           
+        grid.addWidget(self.guiplot, 5,  1,  4,   8 ) 
         # attribute tabel
         grid.addLayout(self.attribute_table.layout, 7, 0, 2, 1)
-        #grid.addWidget(self.attribute_table, 7, 0, 2, 1 )        
+        #grid.addWidget(self.attribute_table, 7, 0, 2, 1 )  
+        self.dev_cur_layout(   plot_type ='curve' )       
+        self.dev_cur_layout(   plot_type ='image' )    
         self.setCentralWidget( QWidget(self))        
         self.centralWidget().setLayout(grid)   
         # Other tweaks to the window such as icons etc
@@ -160,6 +158,35 @@ class mainWindow(QMainWindow):
             self.dev_dataset_buttons( self.dataset_type_obj_string )              
         else:
             pass
+        
+    def dev_cur_layout( self, plot_type ):
+        if plot_type in plot_curve_type:
+            self.CurCrossHair=QLabel( )
+            self.CurCrossHair.setAlignment(Qt.AlignRight|Qt.AlignVCenter)          
+            self.grid.addWidget(self.CurCrossHair, 9, 2, 1,1 ) 
+            self.CrossHair_type = 'curve'
+        elif plot_type in plot_image_type:        
+            self.imageCrossHair=QLabel()
+            self.imageCrossHair.setAlignment(Qt.AlignRight|Qt.AlignVCenter) 
+            self.grid.addWidget(self.imageCrossHair, 9, 1, 1,1 )  
+            self.CrossHair_type = 'image'
+        else:
+            self.CrossHair_type = 'None'
+             
+    def delete_cur_layout( self, plot_type ):
+        if plot_type in plot_curve_type:
+            try:
+                self.deleteLayout( self.imageCrossHair )              
+            except:
+                pass
+        elif plot_type in plot_image_type: 
+            try:            
+                self.deleteLayout( self.CurCrossHair  )  
+            except:
+                pass
+        else:
+            pass 
+        
     def dev_dataset_buttons( self, dataset_type):
         if dataset_type == 'CHX':
             self.plot_g2_button = self.add_plot_g2_button()
@@ -239,18 +266,44 @@ class mainWindow(QMainWindow):
                          'C12': self.PWT.plot_C12,
                          }  
         plot_btn.clicked.connect(  plot_type_dict[plot_type]  )
-        #plot_btn.clicked.connect(  self.PWT.plot_curve  ) 
-        
-        #print('connect to pWT')
-        #print(   plot_type_dict[plot_type] ) 
         button_section =  QHBoxLayout()
         button_section.addWidget(plot_btn)
+        return button_section    
+
+    def add_setlogX_box(self):
+        self.setlogX_box_obj =   QCheckBox("logX" )
+        self.setlogX_box_obj.stateChanged.connect( self.click_setlogX_box )
+        button_section =  QHBoxLayout()
+        button_section.addWidget(self.setlogX_box_obj )
         return button_section
-    
-
-
+    def click_setlogX_box (self, state):
+        if state == QtCore.Qt.Checked:
+            self.logX_plot = True 
+        else:
+            self.logX_plot = False
+        try:
+            self.guiplot.setLogMode( x=self.logX_plot,  y=self.logY_plot) 
+        except:
+            pass               
+    def add_setlogY_box(self):
+        self.setlogY_box_obj =   QCheckBox("logY" )
+        self.setlogY_box_obj.stateChanged.connect( self.click_setlogY_box )
+        button_section =  QHBoxLayout()
+        button_section.addWidget(self.setlogY_box_obj )
+        return button_section
+    def click_setlogY_box (self, state):
+        if state == QtCore.Qt.Checked:
+            self.logY_plot = True  
+        else:
+            self.logY_plot = False   
+        try:
+            self.guiplot.setLogMode( x=self.logX_plot,  y=self.logY_plot) 
+        except:
+            pass   
+            
+            
     def get_dict_from_qval_dict( self ):
-        l = list( self.selected_hdf5_file['qval_dict'].attrs.items() )
+        l = list( self.current_hdf5['qval_dict'].attrs.items() )
         dc = { int(i[0]):i[1] for i in l }
         return dc
 
@@ -371,36 +424,28 @@ class mainWindow(QMainWindow):
         full_filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
                 '/home/yugang/Desktop/XPCS_GUI/TestData/test.h5', filter='*.hdf5 *.h5 *.lst')[0]
         ext = full_filename.split('/')[-1].split('.')[-1]
-        #print( ext )
         if ext == 'lst':
             full_filename_list =  np.loadtxt( full_filename, dtype= object, )
             group_name = full_filename.split('/')[-1]
+            if group_name not in list( self.group_name_dict.keys() ):
+                self.group_name_dict[ group_name ] = full_filename_list
             for fp in full_filename_list:
                 self.initiate_file_open(fp, group_name=group_name)
-            #self.file_items_list.group_root=None
         else:
             self.initiate_file_open(full_filename)
-            #print( full_filename  )
-
+            
     def initiate_file_open(self, full_filename, group_name=None):
-        
-        #self.filename = full_filename
-        basefilename = full_filename.split('/')[-1]
-        self.filename_dict[ basefilename ] =  full_filename  
+        base_filename = full_filename.split('/')[-1]
+        self.full_filename_dict[ full_filename ] =  group_name 
         self.dataset_table.clear()
-        self.attribute_table.clear()        
-        self.create_group_filenamelist( full_filename, group_name )
-        #print('HERE')
+        self.attribute_table.clear()  
         try:
-            self.file_items_list.add_file( full_filename, group_name  )
-            #print( full_filename, group_name )   
+            self.file_items_list.add_file( full_filename, group_name  ) 
             if group_name is None:
-                self.file_items_list_property[basefilename]='file'
-                self.filename_label.setText(  basefilename )
+                 self.filename_label.setText(  base_filename )
             else:
-                self.file_items_list_property[group_name]='group'
-                self.filename_label.setText(  group_name )
-            self.setWindowTitle('XSH5View@CHX - ' +  basefilename )
+                 self.filename_label.setText(  group_name ) 
+            self.setWindowTitle('XSH5View@CHX - ' +  base_filename )
         except:
             self.filename = '' # if it didn't work keep the old value
             self.filename_label.setText('')
@@ -409,24 +454,8 @@ class mainWindow(QMainWindow):
             self.dataset_table.clear()
             self.attribute_table.clear()
             print("Error opening file")
-            
-    def create_group_filenamelist(self, full_filename, group_name = None):
-        '''
-        create_group_filenamelist '''
-        basefilename = full_filename.split('/')[-1]
-        try:
-            if group_name is None:
-                self.hdf5_file_dict[  basefilename ] = h5py.File(  full_filename , 'r')
-            else:
-                if group_name not in list(self.hdf5_file_dict.keys()):
-                    self.hdf5_file_dict[group_name]={}
-                self.hdf5_file_dict[group_name][ basefilename ] = h5py.File( full_filename , 'r')
-            #print('Here create group filelist')    
-        except: 
-            #self.hdf5_file_dict = None
-            pass
+        
     def clear_file_items(self):
-        self.file_items = []
         self.file_items_list.clear()
 
     def get_selected_row_col( self ):
@@ -462,46 +491,36 @@ class mainWindow(QMainWindow):
         self.X=None    
             
     def get_filename_selected(self):
-        self.dataset_table.clear()
-        
-        self.item = self.file_items_list.tree.currentItem()
-        #print(self.item.text(2))
-        self.file_path = self.item.text(1)
-        self.item_path =  self.item.text(2)         
-        #print(self.file_path,self.item_path)        
-        
-        self.current_selected_HDF = h5py.File(self.file_path,'r')
-        
-        self.path = self.item_path
-        if self.path == '':
-            self.selected_hdf5_file = h5py.File(self.file_path,'r')
+        self.dataset_table.clear()        
+        self.item = self.file_items_list.tree.currentItem()  
+        self.current_full_filename = self.item.text(1)   
+        self.current_group_name = self.full_filename_dict[ self.current_full_filename  ]
+        self.current_hdf5 = h5py.File(self.current_full_filename,'r')
+        self.current_base_filename = self.current_full_filename.split('/')[-1]
+        self.current_item_path  = self.item.text(2)            
+        if self.current_item_path == '':
+            self.current_hdf5_item = self.current_hdf5
+            self.current_item_name  = self.item.text(2)
         else:
-            self.selected_hdf5_file = h5py.File(self.file_path,'r')[self.item_path]
-        self.filename_text = self.file_path.split('/')[-1]
-        self.current_dataset =''
-        #print(   self.filename_text,	self.selected_hdf5_file  )
-        
+            self.current_hdf5_item = self.current_hdf5[self.current_item_path]
+            self.current_item_name  = self.item.text(2).split('/')[-1]  
         
     def display_dataset(self):
         self.get_filename_selected()
-        text = self.item.text(2)
-        if self.path != '':
-            hdf5_file  = self.selected_hdf5_file 
+        text = self.current_item_path  #self.item.text(2)
+        if self.current_item_path != '':
+            hdf5_file  = self.current_hdf5_item
             if isinstance(hdf5_file, h5py.Dataset):
                 print( 'shows dataset-------------->')
                 self.group_data = False
-                self.current_dataset = self.item_path.split('/')[-1]				
+                #self.current_dataset = self.item_path.split('/')[-1]				
                 shape = hdf5_file.shape
                 Ns = len(shape)
-                #print( 'hdf5_file shape is: '     )
-                #print(shape, Ns) 
-                print( hdf5_file, Ns )
                 if Ns==0:
                     try:
                         self.value =  bstring_to_string(  hdf5_file   )#[0]
                     except:
                         self.value =   np.array( [ hdf5_file ] )  #[0]
-                    #print( self.value.shape)  
                     numrows = 1
                     numcols = 1
                 elif Ns ==1:
@@ -530,10 +549,8 @@ class mainWindow(QMainWindow):
                             print('The max q-th is %s.'%shape[0])
 
             elif   isinstance(hdf5_file, h5py.Group):
-                self.current_dataset = self.item_path.split('/')[-1]
                 print('display the group data here')
                 if text in self.pds_keys:
-                    print( self.filename, text)					   
                     d = pds.read_hdf( self.filename, key= text )#[:]
                     self.value =  np.array( d )
                     shape = self.value.shape
@@ -542,14 +559,13 @@ class mainWindow(QMainWindow):
                     Ns = len(shape)
                     self.group_data_label=	np.array( d.columns )[:]
                     self.group_data = True
-
                 else:
                     self.dataset_table.clear()
                     self.value = np.array([])
                     self.plot_btn.hide()
             else:
                 print( 'Other format!')
-            try:	
+            try:
                 self.dataset_table.table.setRowCount(numrows)
                 self.dataset_table.table.setColumnCount(numcols)
                 show_data_flag = True
@@ -579,21 +595,15 @@ class mainWindow(QMainWindow):
                     for i,s in enumerate( shape ):
                         self.attribute_table.table.setItem( 0, i+1, QTableWidgetItem( '%s'%s )) 
             except:
-                pass
-                
+                pass                
                 
     def display_attributes(self):
         # reset the value
         self.attribute_table.clear()
         self.get_filename_selected()
-        #print(self.path)
-        #
-        #print( self.selected_hdf5_file  )
-        if self.path != '':    
+        if self.current_item_path != '':    
             print('Here shows the attributes')
-            hdf5_file  = self.selected_hdf5_file
-            #print( hdf5_file )
-            #print( list(hdf5_file.attrs.items()) )
+            hdf5_file  =   self.current_hdf5_item
             try:
                 attributes = list(hdf5_file.attrs.items())
                 num_attributes = len(attributes)
@@ -607,7 +617,6 @@ class mainWindow(QMainWindow):
                 self.attributes_flag=True
             else:
                 self.attributes_flag=False
-                #self.attributes_flag=True
             print(   num_attributes,  self.attributes_flag )   
             # Populate the table
             for i in range(num_attributes):
@@ -623,8 +632,6 @@ class mainWindow(QMainWindow):
                         j+=1
                 else:
                     self.attribute_table.table.setItem(i, 1, QTableWidgetItem(str(value)))
-                    #print( i, value )                
-                
 
     def item_double_clicked(self):
         '''
@@ -655,12 +662,11 @@ class mainWindow(QMainWindow):
         try:
             self.display_dataset()
         except:
-            pass      
-           
+            pass                 
         try:
-            filename = self.filename_text
-            self.filename_label.setText(filename.split('/')[-1])
-            self.setWindowTitle('XSH5View@CHX - ' + filename)
+             
+            self.filename_label.setText(   self.current_base_filename     )
+            self.setWindowTitle('XSH5View@CHX - ' +  self.current_full_filename  )
         except:
             pass
         #self.display_attributes()
@@ -672,5 +678,6 @@ def main():
     sys.exit(app.exec_())
 if __name__ == '__main__':
     main()
+
 
 
