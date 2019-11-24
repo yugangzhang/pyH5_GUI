@@ -130,14 +130,16 @@ class PlotWidget(   ):
                 except:
                     pass
             elif self.mainWin.current_dataset_type =='CFN': 
-                legend_heads = self.mainWin.current_item_path                
+                legend_heads = self.mainWin.current_item_path  
+                #print( legend_heads)
                 try:
                     lab_path =  '/'.join( legend_heads.split('/')[:-1] ) + '/label'
                     self.legends =    self.mainWin.current_hdf5[ lab_path ][:]   
                     self.uid = self.mainWin.current_base_filename
                     #self.title =  self.uid + '-' +  self.legends                    
-                except:
-                    pass           
+                except:                     
+                    self.legends =    legend_heads
+                    self.uid = self.mainWin.current_base_filename        
     
     def  configure_plot_type(self, plot_type ):
         self.mainWin.plot_type = plot_type
@@ -145,10 +147,10 @@ class PlotWidget(   ):
             if self.mainWin.guiplot_count==0:
                 self.mainWin.guiplot = pg.PlotWidget()
                 self.mainWin.grid.addWidget( self.mainWin.guiplot, 5, 1,  4,8 )
-                #self.mainWin.dev_cur_layout(   plot_type ) 
-                #self.mainWin.delete_cur_layout(   'image' )
-            #self.mainWin.CurCrossHair.setText('')
-            self.mainWin.imageCrossHair.clear() 
+            try:
+                self.mainWin.imageCrossHair.clear() 
+            except:
+                pass
             self.mainWin.image_plot_count=0
             
         elif plot_type in plot_image_type: 
@@ -156,12 +158,12 @@ class PlotWidget(   ):
             if self.mainWin.image_plot_count==0:
                 self.mainWin.plt = pg.PlotItem()
                 self.mainWin.guiplot = pg.ImageView( view=self.mainWin.plt  )
-                self.mainWin.grid.addWidget(self.mainWin.guiplot, 5, 1,  4,8 )                
-                #self.mainWin.dev_cur_layout(   plot_type ) 
-                #self.mainWin.delete_cur_layout(   'curve' )                
-            self.mainWin.guiplot_count=0  
-            #self.mainWin.imageCrossHair.setText('')
-            self.mainWin.CurCrossHair.clear() 
+                self.mainWin.grid.addWidget(self.mainWin.guiplot, 5, 1,  4,8 ) 
+            self.mainWin.guiplot_count=0              
+            try:
+                self.mainWin.CurCrossHair.clear() 
+            except:
+                pass                
             
         elif plot_type  in plot_surface_type:
             self.get_colormap(  self.mainWin )     
