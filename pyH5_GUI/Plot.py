@@ -6,7 +6,7 @@ from ColorMap import (cmap_cyclic_spectrum, cmap_jet_extended, cmap_vge, cmap_vg
                       cmap_albula, cmap_albula_r,cmap_hdr_goldish , color_map_dict )      
 import matplotlib.pyplot as plt
                              
-plot_curve_type = [ 'curve', 'g2', 'qiq' ]   # some particular format for curve plot 
+plot_curve_type = [ 'curve', 'g2', 'qiq', 'plot_stack' ]   # some particular format for curve plot 
 plot_image_type = ['image', 'c12']           # some particular format  for image plot
 plot_surface_type = ['surface']           # some particular format  for surfce plot
 
@@ -175,21 +175,28 @@ class PlotWidget(   ):
     def plot_generic_curve(self, plot_type ):        
         self.configure_plot_type( plot_type )
         self.mainWin.get_selected_row_col(  )
-        self.mainWin.legend =   self.mainWin.guiplot.addLegend()
- 
+        self.mainWin.legend =   self.mainWin.guiplot.addLegend() 
         shape = np.shape(self.mainWin.value)
         Ns = len(shape) 
         self.configure_plot_title(   plot_type )          
         #print( self.uid, self.legends )
         ##################
         symbolSize = 6
-
         ##########################
+        
+        #print('here 333333333333')
+        #print( self.mainWin.value.shape )
+            
         self.mainWin.setX_Special_flag = False    ##if self.mainWin.setX_flag is True, self.mainWin.X is not None,
+        sami = 1
+        ys=0
         if plot_type =='qiq':
             Special_Plot( self.mainWin ).plot_qiq( )              
         elif  plot_type =='g2':
             Special_Plot( self.mainWin ).plot_g2( ) 
+        elif plot_type == 'plot_stack' :
+            sami = self.mainWin.vstack_sampling
+            ys =   self.mainWin.vstack_yshift
         else:
             self.mainWin.setX_Special_flag = False
             
@@ -198,18 +205,18 @@ class PlotWidget(   ):
         except:
             pass
         
-        if len(self.mainWin.value) > 0:                    
+        if len(self.mainWin.value) > 0:     
+
             if self.mainWin.X is not None:# and len(self.mainWin.X)==self.mainWin.max_row-self.mainWin.min_row:
                 X = self.mainWin.X[self.mainWin.min_row:self.mainWin.max_row] 
             else:
-                X = self.mainWin.value[self.mainWin.min_row:self.mainWin.max_row, 0]
-                #print(   X[0], X[-1]    )
+                X = self.mainWin.value[self.mainWin.min_row:self.mainWin.max_row, 0]               
             if   self.mainWin.max_col - self.mainWin.min_col   > 1: # for 2d data each plot col by col
                 j = 0
                 #print( 'here for debug plot ...')    
                 #print(   X[0], X[-1]    )
-                for i in range(self.mainWin.min_col, self.mainWin.max_col):
-                    Y = self.mainWin.value[self.mainWin.min_row:self.mainWin.max_row, i ]
+                for i in range(self.mainWin.min_col, self.mainWin.max_col, sami):
+                    Y = self.mainWin.value[self.mainWin.min_row:self.mainWin.max_row, i ] + ys * (i-self.mainWin.min_col)
                     try:
                         leg = self.legends[   i  ]
                     except:
@@ -263,7 +270,7 @@ class PlotWidget(   ):
         if plot_type == 'c12':
             Special_Plot( self.mainWin ).plot_c12( ) 
         elif plot_type == 'image': 
-            #print( title, self.mainWin.value.shape )
+            #print('Should plot image here...###')
             nan_mask = ~np.isnan( self.mainWin.value )            
             image_min, image_max = np.min( self.mainWin.value[nan_mask] ), np.max( self.mainWin.value[nan_mask] )
             self.mainWin.min,self.mainWin.max=image_min, image_max
@@ -375,15 +382,19 @@ class PlotWidget(   ):
             pass
         
          
-    def plot_curve( self ):
-           
+    def plot_curve( self ):           
         try:
             print( 'curve here ------>')     
             return self.plot_generic_curve( 'curve' )
         except:
             pass
-    def plot_g2( self ):
-          
+    def plot_stack( self ):          
+        try:
+            print( 'stack plot here ------>')      
+            return self.plot_generic_curve( 'plot_stack' )
+        except:
+            pass        
+    def plot_g2( self ):          
         try:
             print( 'g2 here ------>')      
             return self.plot_generic_curve( 'g2' )
