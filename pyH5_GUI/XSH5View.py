@@ -5,7 +5,9 @@ from PyQt5.QtWidgets import (QWidget, QToolTip,
     QPushButton, QApplication, QMessageBox, QDesktopWidget,QMainWindow,
 QAction, qApp, QMenu, QGridLayout, QTreeWidget,  QTreeWidgetItem, QTableWidget,
  QLabel,  QTableWidgetItem,   QInputDialog, QLineEdit,  QHBoxLayout,    QCheckBox,
- QComboBox,  QActionGroup, QDialog,)
+ QComboBox,  QActionGroup, QDialog, QInputDialog, QLineEdit,  QVBoxLayout, QGroupBox , QDialogButtonBox )
+ 
+
 from PyQt5.QtGui import QFont ,  QIcon
 from PyQt5.QtCore import Qt
 from PyQt5 import QtCore, QtGui
@@ -61,6 +63,7 @@ class mainWindow(QMainWindow):
         self.colormap_string = 'jet'
         self.colorscale_string = 'log'
         self.show_image_data = False
+        self.rot_image_data = False
         self.attributes_flag=False
         self.current_selected_HDF = ''
         self.dataset_type_list =  [ 'CFN','LiX', 'CHX', ]
@@ -74,6 +77,9 @@ class mainWindow(QMainWindow):
         
         self.PWT= PlotWidget(self)
         self.initialise_user_interface()
+        
+        self.vstack_sampling = 20 
+        self.vstack_yshift = 10 
         
         
     def initialise_user_interface(self):
@@ -151,7 +157,8 @@ class mainWindow(QMainWindow):
     ########Start Deal with layout
     def initialise_layout(self):  
         if self.dataset_type_obj_string == 'CFN':  
-            self.delete_dataset_buttons( 'CHX' )            
+            self.delete_dataset_buttons( 'CHX' )     
+            self.dev_dataset_buttons( self.dataset_type_obj_string )      
         elif self.dataset_type_obj_string == 'LIX':  
             self.delete_dataset_buttons( 'CHX' ) 
         elif self.dataset_type_obj_string == 'CHX':    
@@ -196,7 +203,29 @@ class mainWindow(QMainWindow):
             self.grid.addLayout(self.plot_g2_button,      2, 1, 1, 1,QtCore.Qt.AlignLeft)
             self.grid.addLayout(self.plot_c12_button,     2, 2, 1, 1,QtCore.Qt.AlignLeft)
             self.grid.addLayout(self.plot_qiq_button,     2, 3, 1, 1, QtCore.Qt.AlignLeft)
-            self.grid.addLayout(self.q_box_input,         2, 6, 1, 1, QtCore.Qt.AlignLeft)            
+            self.grid.addLayout(self.q_box_input,         2, 6, 1, 1, QtCore.Qt.AlignLeft)    
+            
+        if dataset_type == 'CFN':
+            self.rot_image_button = self.add_rot_image_button()              
+            self.grid.addLayout( self.rot_image_button,      2, 2, 1, 1,QtCore.Qt.AlignLeft)   
+            self.stack_plot_button = self.add_stack_plot_button()              
+            self.grid.addLayout( self.stack_plot_button,      2, 1, 1, 1,QtCore.Qt.AlignLeft)             
+            
+            
+    def add_rot_image_button(self):
+        rot_image_button =   QPushButton("rot image" )
+        rot_image_button.clicked.connect(self.rot_image)
+        button_section =  QHBoxLayout()
+        button_section.addWidget(rot_image_button )
+        return button_section       
+    def rot_image(self):
+        #print('here')
+        try:
+            self.value = self.value.T
+        except:
+            pass
+  
+
     def delete_dataset_buttons( self, dataset_type):
         if dataset_type == 'CHX'  and self.current_dataset_type =='CHX':
             self.deleteLayout( self.plot_g2_button )             
@@ -239,7 +268,8 @@ class mainWindow(QMainWindow):
         self.current_dataset_type = self.dataset_type_obj.currentText()
         #print( self.dataset_type_obj_string , self.dataset_type_obj.currentText() )
 
-        
+    def add_stack_plot_button(self):
+        return self.add_generic_plot_button( plot_type = 'plot_stack',  button_name='Stack Plot')    
     def add_plot_g2_button(self):
         return self.add_generic_plot_button( plot_type = 'g2',  button_name='Plot_g2')
     def add_plot_c12_button(self):
@@ -264,6 +294,7 @@ class mainWindow(QMainWindow):
                          'surface': self.PWT.plot_surface,
                          'image': self.PWT.plot_image,
                          'C12': self.PWT.plot_C12,
+                          'plot_stack': self.PWT.plot_stack,
                          }  
         plot_btn.clicked.connect(  plot_type_dict[plot_type]  )
         button_section =  QHBoxLayout()
@@ -328,25 +359,20 @@ class mainWindow(QMainWindow):
         return button_section
 
     def guiplot_clear(self):
-        if self.plot_type in ['curve', 'g2', 'qiq']:
+        if self.plot_type in ['curve', 'g2', 'qiq', 'plot_stack',]:
             self.guiplot.clear()
             self.guiplot_count=0
-            try:
-                for item in self.legend.items:
-                    self.legend.removeItem(item)
-            except:
-                pass
         elif self.plot_type in [ 'image']:
             self.guiplot.clear()
             self.guiplot_count=0
         elif self.plot_type in [ 'surface']:
-            pass
+            pass            
         try:
-            lts = self.guiplot.plotItem.legend.items
-            for t in lts:
-                self.guiplot.removeItem( t )
+            self.legend.scene().removeItem(  self.legend )
         except:
             pass
+    
+        
     def add_q_box( self ):
         # Create textbox
         self.q_box = QLineEdit(   placeholderText="Please enter q-number (int) of two-time function."  )
@@ -390,11 +416,18 @@ class mainWindow(QMainWindow):
             self.colorscale_options_menu.addAction(action)
             group.addAction(action)
         group.setExclusive(True)
-        group.triggered.connect(self.onTriggered_colorscale)
+        group.triggered.connect(self.onTriggered_colorscale)      
+        
         self.display_image_data_options_menu = self.view_menu.addMenu('&Display Image Data')
         show_image_data_action = QAction('show data', self, checkable=True, checked=False)
         show_image_data_action.triggered.connect(self.onTriggered_show_image_data)
         self.display_image_data_options_menu.addAction(  show_image_data_action  )
+        
+        self.stack_plot_options_menu = self.view_menu.addMenu('&Stack Plot Options')
+        set_stack_action = QtGui.QAction('Sampling and yshift', self )
+        set_stack_action.triggered.connect(self.onTriggered_set_stack)
+        self.stack_plot_options_menu.addAction(  set_stack_action  )
+        
         # Create a Help menu and add an about button
         help_menu = menubar.addMenu('&Help')
         about_action = QtGui.QAction('About XSH5FView', self)
@@ -402,9 +435,23 @@ class mainWindow(QMainWindow):
         about_action.triggered.connect(self.show_about_menu)
         help_menu.addAction(about_action)
         
+    def onTriggered_set_stack(self, action):
+        print('set stack opt here.')         
+        i, okPressed = QInputDialog.getInt(self, "Set Sampling Number","sampling:", self.vstack_sampling, 0, 10000, 10)
+        if okPressed:
+            self.vstack_sampling = i
+            print(i)    
+        d, okPressed = QInputDialog.getDouble(self, "Set yshift","Value:", self.vstack_yshift, 0, 1e8, 2)
+        if okPressed:
+            self.vstack_yshift =d
+            print(d)   
+            
+
+
     def onTriggered_show_image_data(self, action):
         #print(action.text())
         self.show_image_data = action #.text()
+       
     def onTriggered_colormap(self, action):
         #print(action.text())
         self.colormap_string = action.text()
@@ -577,7 +624,7 @@ class mainWindow(QMainWindow):
                         if self.value.shape[0]>100 and self.value.shape[1]>100:
                             show_data_flag=False
                     except:
-                            pass   
+                            pass                           
                 if show_data_flag:                    
                     if Ns!=-1:
                         for i in range(numrows):
@@ -595,7 +642,7 @@ class mainWindow(QMainWindow):
                     for i,s in enumerate( shape ):
                         self.attribute_table.table.setItem( 0, i+1, QTableWidgetItem( '%s'%s )) 
             except:
-                pass                
+                pass        
                 
     def display_attributes(self):
         # reset the value
@@ -670,6 +717,13 @@ class mainWindow(QMainWindow):
         except:
             pass
         #self.display_attributes()
+        
+        
+class ExamplePopup(QDialog):
+    def __init__(self, name, parent=None):
+        super().__init__(parent)
+        self.name = name
+        self.label = QLabel(self.name, self)        
 
 def main():
     app = QApplication(sys.argv)
