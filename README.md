@@ -26,7 +26,7 @@ A GUI to visualize hierarchical h5 files. Primarily, the GUI is designed to show
     source activate pyGUI\
     python XSH5View.py  (go to the pyH5_GUI folder)
 ### On Windows
-    python XSH5View.py  (go to the pyH5_GUI folder)
+    python XSH5View.py  (go to the pyH5_GUI folder, under the lauched terminal with Anaconda Navigator)
 ## How to uncompress the tar.gz file (On Linux)
 tar -xvf test.tar.gz\
 tar -xvf test.tar
