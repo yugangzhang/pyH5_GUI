@@ -14,7 +14,8 @@ A GUI to visualize hierarchical h5 files. Primarily, the GUI is designed to show
     source ~/.bashrc\
     conda create --name pyGUI python=3\
     conda activate pyGUI\
-    pip install numpy   pyqt5 h5py  pyqtgraph  PyOpenGL  tables pandas logger matplotlib qtconsole\    
+    pip install numpy   pyqt5 h5py  pyqtgraph  PyOpenGL  tables pandas logger qtconsole\  
+    conda install matplotlib 
 ### On Windows    
     Install Anaconda https://docs.anaconda.com/anaconda/install/windows/ (The follow predure is based on Anaconda 3.0 (64-bit)
     Run Anaconda Navigator
