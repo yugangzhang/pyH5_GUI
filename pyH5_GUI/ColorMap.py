@@ -85,6 +85,6 @@ color_list_cur_hdr_goldish = [
 ]
 cmap_hdr_goldish = mpl.colors.LinearSegmentedColormap.from_list('cmap_hdr_goldish', color_list_cur_hdr_goldish)
 
-color_map_dict = { "default":'default',  "jet":plt.cm.jet, 'jet_extended':cmap_jet_extended,
+color_map_dict = { "default":'default',  "jet":plt.cm.jet, "gray":plt.cm.gray, 'jet_extended':cmap_jet_extended,
              'albula':cmap_albula, 'albula_r':cmap_albula_r, 'goldish':cmap_hdr_goldish, "viridis":plt.cm.viridis,
               'spectrum':cmap_cyclic_spectrum, 'vge':cmap_vge, 'vge_hdr':cmap_vge_hdr, }
