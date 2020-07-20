@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 plot_curve_type = [ 'curve', 'g2', 'qiq', 'plot_stack' ]   # some particular format for curve plot 
 plot_image_type = ['image', 'c12']           # some particular format  for image plot
 plot_surface_type = ['surface']           # some particular format  for surfce plot
+color_map_string = [ "jet", 'jet_extended', 'albula', 'albula_r', 'gray',
+                                      'goldish', "viridis", 'spectrum', 'vge', 'vge_hdr',]
 
 
 class  Special_Plot( ):
@@ -89,8 +91,7 @@ class PlotWidget(   ):
                  dtype=np.ubyte)
             cmap = pg.ColorMap(pos, color)
             self.mainWin.colormap = cmap
-        elif self.mainWin.colormap_string in [ "jet", 'jet_extended', 'albula', 'albula_r',
-                                      'goldish', "viridis", 'spectrum', 'vge', 'vge_hdr',]:
+        elif self.mainWin.colormap_string in color_map_string:
              self.mainWin.colormap =  color_map_dict[self.mainWin.colormap_string]
              cmap = self.generatePgColormap(  self.mainWin.colormap   )
              print('the color string is: %s.'%self.mainWin.colormap_string)
@@ -197,6 +198,9 @@ class PlotWidget(   ):
         elif plot_type == 'plot_stack' :
             sami = self.mainWin.vstack_sampling
             ys =   self.mainWin.vstack_yshift
+            #print('here is the test for stack plot')
+            #print( ys )
+            
         else:
             self.mainWin.setX_Special_flag = False
             
