@@ -19,6 +19,9 @@ from PyQt5.QtCore import pyqtSlot
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 
+from Ipython_Widget import ConsoleWidget
+
+
 pg.setConfigOptions( imageAxisOrder = 'row-major')
 import pandas as pds
 import logger
@@ -78,8 +81,8 @@ class mainWindow(QMainWindow):
         self.PWT= PlotWidget(self)
         self.initialise_user_interface()
         
-        self.vstack_sampling = 20 
-        self.vstack_yshift = 10 
+        self.vstack_sampling = 1
+        self.vstack_yshift = 1 
         
         
     def initialise_user_interface(self):
@@ -144,7 +147,12 @@ class mainWindow(QMainWindow):
         grid.addWidget(self.guiplot, 5,  1,  4,   8 ) 
         # attribute tabel
         grid.addLayout(self.attribute_table.layout, 7, 0, 2, 1)
-        #grid.addWidget(self.attribute_table, 7, 0, 2, 1 )  
+        #grid.addWidget(self.attribute_table, 7, 0, 2, 1 )
+
+        #self.ipython_widget =  ConsoleWidget()
+        ##add a ipython widget
+        #grid.addLayout(self.ipython_widget, 7, 0, 4, 1)
+        
         self.dev_cur_layout(   plot_type ='curve' )       
         self.dev_cur_layout(   plot_type ='image' )    
         self.setCentralWidget( QWidget(self))        
@@ -251,7 +259,7 @@ class mainWindow(QMainWindow):
         open_file_btn.clicked.connect(self.choose_file)
         button_section =  QHBoxLayout()
         button_section.addWidget(open_file_btn)
-        #button_section.addStretch(0)
+        #button_section.addStretch(0)        
         return button_section      
     def add_dataset_type_box(self):
         self.dataset_type_obj = QComboBox()
@@ -379,6 +387,12 @@ class mainWindow(QMainWindow):
         button_section =  QHBoxLayout()
         button_section.addWidget(self.q_box )
         return button_section
+
+    def open_ipython(self):
+        #from Ipython_Import import sys,np,plt,ft,h5py,pds
+        widget = ConsoleWidget()
+        widget.show()
+        
     def make_menu_bar(self):
         '''
         Initialises the menu bar at the top. '''
@@ -389,6 +403,13 @@ class mainWindow(QMainWindow):
         open_action.setShortcut('Ctrl+o')
         open_action.triggered.connect(self.choose_file)
         self.file_menu.addAction(open_action)
+
+        # Add a button to open a Ipython console        
+        Ipython_action = QtGui.QAction('&Ipython', self)
+        Ipython_action.setShortcut('Ctrl+i')
+        Ipython_action.triggered.connect(self.open_ipython)
+        self.file_menu.addAction(Ipython_action)        
+        
         # Add an exit button to the file menu
         exit_action = QtGui.QAction('&Exit', self)
         exit_action.setShortcut('Ctrl+Z')
@@ -401,7 +422,9 @@ class mainWindow(QMainWindow):
         self.image_plot_options_menu = self.view_menu.addMenu('&Image Plot Options')
         self.colormap_options_menu = self.image_plot_options_menu.addMenu('&Colormap')
         group = QActionGroup(    self.colormap_options_menu )
-        texts = ["default",  "jet", 'jet_extended', 'albula', 'albula_r', 'goldish', "viridis", 'spectrum', 'vge', 'vge_hdr',  ]
+        texts = ["default",  "jet", 'jet_extended', 'gray', 'albula',
+                 'albula_r', 'goldish', "viridis", 'spectrum',
+                 'vge', 'vge_hdr',  ]
         for text in texts:
             action = QAction(text, self.colormap_options_menu, checkable=True, checked=text==texts[1])
             self.colormap_options_menu.addAction(action)
