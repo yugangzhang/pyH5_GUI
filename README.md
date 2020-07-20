@@ -17,14 +17,16 @@ A GUI to visualize hierarchical h5 files. Primarily, the GUI is designed to show
     pip install numpy   pyqt5 h5py  pyqtgraph  PyOpenGL  tables pandas logger qtconsole\  
     conda install matplotlib 
     (Note: for some systems, you might have a problem related to the X11 problem. 
-    Error message:  qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
+    Error message:  qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found. \
                     This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+                    Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vnc, wayland-egl, wayland, wayland-xcomposite-egl, wayland-xcomposite-glx, webgl, xcb.
     Solution:
-    sudo apt install libxkbcommon-x11-0  #for linux
-    sudo yum install libxkbcommon-x11  #for redhat
+        sudo apt install libxkbcommon-x11-0  #for linux
+        sudo yum install libxkbcommon-x11  #for redhat
+    )
                     
 
-Available platform plugins are: eglfs, linuxfb, minimal, minimalegl, offscreen, vnc, wayland-egl, wayland, wayland-xcomposite-egl, wayland-xcomposite-glx, webgl, xcb.
+
 ### On Windows    
     Install Anaconda https://docs.anaconda.com/anaconda/install/windows/ (The follow predure is based on Anaconda 3.0 (64-bit)
     Run Anaconda Navigator
