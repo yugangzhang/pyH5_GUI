@@ -18,6 +18,25 @@ logger = logging.getLogger(__name__)
 
 
 
+    
+######################################
+#Functions to load beamline raw data
+#####################################
+def load_img( filename  ):
+    ''' YG DEV at Nov/10/2019@CFN Get data from a CMS scattering data collected pilatus detectors
+    Parameters
+    ----------
+        filename: string, filename of the data
+        inDir: string, data folder 
+    Returns
+    -------
+        data: array, 2D numpy array (the data is converted up-side down.
+    '''
+    im = Image.open(   filename )
+    return np.array( im )[::-1]
+
+
+
 def bstring_to_string( bstring ):
     '''Y.G., Dev@CFN Nov 20, 2019 convert a btring to string
      
@@ -36,251 +55,7 @@ def bstring_to_string( bstring ):
         return np.char.decode( s )
 
 
-    
-######################################
-#Functions to load beamline raw data
-#####################################
-def load_img( filename  ):
-    ''' YG DEV at Nov/10/2019@CFN Get data from a CMS scattering data collected pilatus detectors
-    Parameters
-    ----------
-        filename: string, filename of the data
-        inDir: string, data folder 
-    Returns
-    -------
-        data: array, 2D numpy array (the data is converted up-side down.
-    '''
-    im = Image.open(   filename )
-    return np.array( im )[::-1]
 
-    
-    
-######################################
-#Functions to handle files
-#####################################  
-
-def get_Unique_BasenameDict( inDir, cut_pattern= r'[_]\d', starting_point=0,
-                           and_list=[], or_list=[], no_list=[] ):
-    '''YG May 27, 2020
-        Get a dictionary of unique basenames by giving its filefolder name
-    Input:
-      inDir, str, input filefold containing the filename to be processed
-      cut_pattern: a re pattern, to find the unique basename      
-      starting_point: integer, position of the first character in a filename to be precessed
-        and_list: list of string,  only retrun filename containing all the strings
-        or_list: list of string,  only retrun filename containing one of the strings
-        no_string: list of string,  only retrun filename not containing the string      
-    Output:
-      base_dict: keys, string,   base filename
-                 vales,  all related filenames                                     
-      base_count_dict: keys, string,   base filename
-                 vales,  the length of the filenames                                        
-                                       
-    '''    
-    from os import listdir
-    from os.path import isfile, join
-    import re     
-    tifs = ls_dir( inDir ,  and_list=and_list, or_list=or_list, no_list=no_list)
-    tifsc = list(tifs.copy()) 
-    N = len(tifsc)
-    d={}
-    dc = {}
-    for fp in tifsc:
-        try:
-            n = re.search(cut_pattern, fp[starting_point:] ).start()
-        except:
-            n = -1
-        ufp = fp[:starting_point + n ]
-        if ufp not in list(d.keys()):
-            d[ufp]= [fp]
-            dc[ufp]=1
-        else:        
-            d[ufp].append( fp )
-            dc[ufp]+=1
-    return d,dc
-     
- 
-def get_Unique_SamDict_from_list( sam_list, cut_pattern= r'[_]\d', starting_point=0,
-                             ):
-    '''YG June 19, 2020
-        Get a dictionary of unique sample name by giving a list of sample names
-    Input:
-      sam_list, list of str, a list of sample names  to be processed
-      cut_pattern: a re pattern, to find the unique samples
-      starting_point: integer, position of the first character in a samle name to be precessed
-     
-    Output:
-      base_dict: keys, string,   base filename
-                 vales,  all related filenames                                     
-      base_count_dict: keys, string,   base filename
-                 vales,  the length of the filenames                                        
-                                       
-    '''     
-    import re  
-    d={}
-    dc = {}
-    for sam in sam_list:
-        try:
-            n = re.search(cut_pattern, sam[starting_point:] ).start()
-        except:
-            n = -1
-        ufp = sam[:starting_point + n ]
-        if ufp not in list(d.keys()):
-            d[ufp]= [sam]
-            dc[ufp]=1
-        else:        
-            d[ufp].append( sam )
-            dc[ufp]+=1
-    return d,dc
-
-
-
-def delete_file(  full_filename   ):
-    '''YG Dev Octo@CFN
-    Delete a file
-    Parameters
-    ----------
-        full_filename: string, the full path of the file
-    Returns
-    -------
-        None
-    '''   
-    if os.path.exists(full_filename):
-        os.remove( full_filename ) 
-        print( 'The file: %s is deleted.'%full_filename)  
-        
-def copy_file(  filename_list, inDir, outDir   ):
-    '''YG Dev Octo@CFN
-    Delete a file
-    Parameters
-    ----------
-        filename_list: list of string
-        inDir: input dir
-        outDir: output dir
-    Returns
-    -------
-        None
-    '''   
-    
-    for fp in filename_list:
-        source = inDir + fp 
-        destination = outDir + fp
-        if os.path.exists( source ):
-            shutil.copyfile( source,destination )             
-            print( 'The file: %s is copied to %s.'%( source,destination ) )        
-        
-        
-def ls_dir(inDir, and_list=[], or_list =[], no_list=[] ):
-    '''Y.G. Aug 1, 2019
-    List all filenames in a filefolder  
-    Parameters
-    ----------    
-        inDir: string, fullpath of the inDir
-        and_list: list of string,  only retrun filename containing all the strings
-        or_list: list of string,  only retrun filename containing one of the strings
-        no_string: list of string,  only retrun filename not containing the string    
-    Returns
-    -------
-        list, filtered filenames
-    '''
-    tifs = np.array( [f for f in listdir(inDir) if isfile(join(inDir, f))] )
-    tifs_ = []
-    Nor = len(or_list)
-    for tif in tifs:
-        flag=1
-        if len(and_list):
-            for string in and_list:                
-                if string not in tif:
-                    flag *=0
-        if len(or_list):
-            c=0
-            for string in or_list:            
-                if string not in tif:
-                    c+=1
-            if c==Nor:
-                flag *= 0
-        if len(no_list):       
-            for string in  no_list:
-                if string in tif:
-                    flag *=0            
-        if flag:
-            tifs_.append( tif )            
-    return np.array( tifs_ )
-
-
-
-######################################
-#Functions to handle hdf file
-##################################### 
-
- 
-
-def export_dict_to_h5( Res, fout, overwrite=False ):
-    '''YG DEV @CFN, Nov 2019, export a dict to a h5 file 
-    Currently, this function does not support nested dict excpet that if key is 'md' the value of md can be a two-layer dict 
-    For example, this funciton can support  { k1: data1, k2: data2, md: { k1:scalar, k2:scalar }    } 
-    but not the nested dict like {  k1: { k2: {data} }  } 
-    Parameters
-    ----------
-        Res: a dict
-        fout: the output filename with full file path, the extension should be h5
-        overwrite: if True, will delete the exist file first
-    Returns
-    -------
-        None
-    '''
-    if overwrite:
-        delete_file( fout  )
-    dict_keys=['md','analysis_md']    
-    with h5py.File(fout, 'a') as hf:
-        for key in list(Res.keys()): 
-            try:
-                if key not in dict_keys:
-                    data = hf.create_dataset(  '/%s'%(key), data = Res[key] )   
-                else:
-                    md= Res[key]
-                    meta_data = hf.create_dataset( key, (1,), dtype='i')
-                    for key_ in md.keys(): 
-                        print(key_)
-                        try:
-                            if md[key_] is None:
-                                meta_data.attrs[str(key_)]='None'
-                            else:
-                                meta_data.attrs[str(key_)] = md[key_]                        
-                        except:
-                            print('Cant export')
-                            pass    
-            except:
-                pass
-
-
-def load_h5_as_dict( fin ) :
-    '''YG DEV @CFN, , Nov 2019, load a h5 as a dict  
-    Parameters
-    ----------      
-        fin: the input filename with full file path, the extension should be h5        
-    Returns
-    -------
-        dict
-    '''
-    Res = {}
-    dict_keys=['md','analysis_md'] 
-    with h5py.File( fin, 'r') as hf: 
-        for key in list( hf.keys()):             
-            if key not in dict_keys:                
-                Res[ key ] = np.array( hf.get( key  ))
-            else:
-                Res[key] = {}
-                md = hf.get(key)                
-                for k in list(md.attrs):
-                    if md.attrs[k] == 'None':
-                        Res[key][k] = None
-                    else:
-                        Res[key][k] = md.attrs[k]
-    return Res
-
-    
-###copied from https://github.com/yugangzhang/silx/blob/master/silx/io/dictdump.py  
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 def _prepare_hdf5_dataset(array_like):
     """Cast a python object into a numpy array in a HDF5 friendly format.
@@ -623,112 +398,7 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, return_data=Tru
                 else:                    
                     pass
     return ddict
-                    
-                    
-                    
-                    
-                   
-################
-def export_saxs_dict_to_h5( Res, fout, 
-                           mode="w", overwrite=False,             
-                           create_ds_args = {'compression': "gzip",'shuffle': True,'fletcher32': True}  ): 
-    '''YG DEV @CFN, Nov 2019, export a dict to a h5 file 
-    Currently, this function does not support nested dict excpet that if key is 'md' the value of md can be a two-layer dict 
-    For example, this funciton can support  { k1: data1, k2: data2, md: { k1:scalar, k2:scalar }    } 
-    but not the nested dict like {  k1: { k2: {data} }  } 
-    Parameters
-    ----------
-        Res: a dict, with keys as 
-                dict_keys(['md', 'raw_saxs', 'ciravg', 'qphi'])
-        
-        fout: the output filename with full file path, the extension should be h5
-        overwrite: if True, will delete the exist file first
-    Returns
-    -------
-        None
-    '''   
-    compssion,shuffle,fletcher32 =  create_ds_args['compression'], create_ds_args['shuffle'], create_ds_args['fletcher32'] 
-    if overwrite:
-        delete_file( fout  )
-    pds_keys=['ciravg', 'iqs', 'iphs']  
-    for key in list(Res.keys()):
-        #print(key)
-        if key in  pds_keys:
-            #print(key)
-            Res[key].to_hdf(  fout, key="/%s/"%key,  compssion = compssion ,shuffle= shuffle, fletcher32= fletcher32 )
-        elif key in [ 'qphi' ] :
-            for ki in list(Res[key].keys()):
-                #print(ki)
-                if ki in pds_keys:
-                    Res[key][ki].to_hdf(  fout, key="/%s/%s/"%(key,ki),  compssion = compssion ,shuffle= shuffle, fletcher32= fletcher32 )
-                else:
-                    try:
-                        dicttoh5( Res[key][ki], fout, h5path="/%s/%s/"%(key,ki) , create_dataset_args=create_ds_args) 
-                    except:
-                        with _SafeH5FileWrite( fout, mode=mode) as h5f:
-                            h5f.create_dataset(   "/%s/%s/"%(key,ki), data=Res[key][ki],**create_ds_args)                        
-                        
-        else:
-            try:
-                dicttoh5( Res[key], fout, h5path="/%s/"%key, create_dataset_args=create_ds_args)           
-            except:
-                with _SafeH5FileWrite( fout, mode=mode) as h5f:
-                    h5f.create_dataset(   "/%s/"%key ,data=Res[key],**create_ds_args)
  
-
-    
-    
-    
-    
-    
-def append_txtfile( filename, data, fmt='%s', overwrite=False, *argv,**kwargs ):
-    '''YG. Dev May 10, 2109 append data to a file
-    Create an empty file if the file dose not exist, otherwise, will append the data to it
-    Parameters
-    ----------
-        fp: filename
-        data: the data to be append
-        fmt: the parameter defined in np.savetxt
-        overwrite: if True, will delete the exist file first
-    Returns
-    -------        
-        None
-    '''
-    from numpy import savetxt
-    exists = os.path.isfile( filename)
-    if not exists:
-        np.savetxt(  filename,  [ ]  , fmt='%s', )
-        print('create new file')
-    else:
-        if  overwrite:
-            np.savetxt(  filename,  [ ]  , fmt='%s', )            
-    f=open( filename, 'a')     
-    savetxt( f, data, fmt = fmt , *argv,**kwargs )
-    f.close()  
-    
-def dump_filenames_to_lst(  filenames, output_filename,overwrite=False, verbose=True ):
-    '''YG DEV at 9/19/2019@CFN dump filenames to a lst file
-    Parameters
-    ----------
-        filenames: list, the list of the filenames with full data path
-        output_filename: the filename for output
-        verbose: if True,  print the information 
-        overwrite: if True, will delete the exist file first
-    Returns
-    -------
-        None
-    ''' 
-    if output_filename [-4:] !='.lst':
-        output_filename  += '.lst'
-    if  overwrite:
-        delete_file(  output_filename  )          
-    for FP in  filenames:               
-         append_txtfile( filename =  output_filename,  data =  np.array( [ FP ]) )
-    print('All the filenames has been dumped to %s.'%( output_filename))
-    print( 'You can use pyH5_GUI to visualize all the h5 file.')      
-    
-                    
-
 def load_data_with_header(filename,data_row_start=1, max_row = None,
                           return_data_header=False, trys=True):
     
