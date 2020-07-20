@@ -19,7 +19,10 @@ from PyQt5.QtCore import pyqtSlot
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
 
-from Ipython_Widget import ConsoleWidget
+try:
+    from Ipython_Widget import ConsoleWidget
+except:
+    from pyqtconsole.console import PythonConsole as ConsoleWidget
 
 
 pg.setConfigOptions( imageAxisOrder = 'row-major')
@@ -390,8 +393,9 @@ class mainWindow(QMainWindow):
 
     def open_ipython(self):
         #from Ipython_Import import sys,np,plt,ft,h5py,pds
-        widget = ConsoleWidget()
+        widget = ConsoleWidget()        
         widget.show()
+
         
     def make_menu_bar(self):
         '''
