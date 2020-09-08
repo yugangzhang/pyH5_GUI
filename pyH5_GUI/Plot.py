@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 plot_curve_type = [ 'curve', 'g2', 'qiq', 'plot_stack' ]   # some particular format for curve plot 
 plot_image_type = ['image', 'c12']           # some particular format  for image plot
 plot_surface_type = ['surface']           # some particular format  for surfce plot
-color_map_string = [ "jet", 'jet_extended', 'albula', 'albula_r', 'gray',
-                                      'goldish', "viridis", 'spectrum', 'vge', 'vge_hdr',]
+color_map_string = [ 'jet', 'jet_extended', 'albula', 'albula_r', 'gray',
+                     'goldish', "viridis", 'spectrum', 'vge', 'vge_hdr',]
 
 
 class  Special_Plot( ):
@@ -78,8 +78,9 @@ class PlotWidget(   ):
         self.resizeEvent = self.mainWin.onresize
 
     def generatePgColormap(self, cmap ):
-        colors = [cmap(i) for i in range(cmap.N)]
+        colors = np.array( [cmap(i) for i in range(cmap.N)] ) * 255  #be careful for old version, don't need X255
         positions = np.linspace(0, 1, len(colors))
+        print( positions, colors , cmap.N , len(colors) )
         pgMap = pg.ColorMap(positions, colors)
         return pgMap
     
@@ -91,13 +92,18 @@ class PlotWidget(   ):
                  dtype=np.ubyte)
             cmap = pg.ColorMap(pos, color)
             self.mainWin.colormap = cmap
-        elif self.mainWin.colormap_string in color_map_string:
-             self.mainWin.colormap =  color_map_dict[self.mainWin.colormap_string]
-             cmap = self.generatePgColormap(  self.mainWin.colormap   )
-             print('the color string is: %s.'%self.mainWin.colormap_string)
+        elif self.mainWin.colormap_string in color_map_string:       
+             self.mainWin.colormap =  color_map_dict[self.mainWin.colormap_string]             
+             #print(    self.mainWin.colormap )
+             cmap = self.generatePgColormap(  self.mainWin.colormap   )             
+             print('the color string is: %s.'%self.mainWin.colormap_string )
+             #print( cmap )  
         else:
-            pass
-        self.mainWin.cmap = cmap
+            pass        
+        self.mainWin.cmap = cmap        
+
+        #print( 'here should show ' )
+        #print( self.mainWin.colormap_string, self.mainWin.colormap , cmap )
         return cmap
     
     def configure_plot_title( self, plot_type ): 
@@ -282,7 +288,7 @@ class PlotWidget(   ):
             if self.mainWin.colorscale_string == 'log':
                 if image_min<=0:
                     image_min = 0.1*np.mean(np.abs( self.mainWin.value[nan_mask] ))
-                tmpData=np.where(self.mainWin.value<=0,1,self.mainWin.value)
+                tmpData=np.where(self.mainWin.value<=0,1,self.mainWin.value)  
                 self.mainWin.guiplot.setImage(np.log10(tmpData),
                                       levels=(np.log10( image_min),np.log10( image_max)),
                                       pos=pos,
@@ -300,8 +306,12 @@ class PlotWidget(   ):
             tick = np.int_(np.linspace(0, self.mainWin.value.shape[0], 5 ))
             dx = [(pos[i], '%i'%(tick[i])) for i in range( len(pos ))   ]
             ax.setTicks([dx, []])
-            ax2.setTicks([dx, []] )
-        self.mainWin.guiplot.setColorMap( self.mainWin.cmap )
+            ax2.setTicks([dx, []] )      
+            
+        #print( self.mainWin.cmap )    
+        self.mainWin.guiplot.setColorMap( self.mainWin.cmap ) 
+        
+        
         self.mainWin.plt.setTitle( title = self.title )
         self.mainWin.guiplot.getView().invertY(False)
         self.mainWin.image_plot_count += 1
