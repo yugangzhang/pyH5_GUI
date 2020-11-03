@@ -12,7 +12,11 @@ plot_surface_type = ['surface']           # some particular format  for surfce p
 color_map_string = [ 'jet', 'jet_extended', 'albula', 'albula_r', 'gray',
                      'goldish', "viridis", 'spectrum', 'vge', 'vge_hdr',]
 
-
+xlabel_global = ['qx_range', 'qr_range' ]
+ylabel_global = ['qz_range', 'qy_range' ]
+            
+    
+    
 class  Special_Plot( ):
     def __init__(self, mainWin ):        
         self.mainWin= mainWin
@@ -299,14 +303,31 @@ class PlotWidget(   ):
                                        pos=pos,
                                        autoRange=True)
             #print( self.mainWin.colorscale_string   )
-            self.mainWin.plt.setLabels( left = 'Y', bottom='X')
-            ax = self.mainWin.plt.getAxis('bottom')
-            ax2 = self.mainWin.plt.getAxis('left')
-            pos = np.int_(np.linspace(0, self.mainWin.value.shape[0], 5 ))
-            tick = np.int_(np.linspace(0, self.mainWin.value.shape[0], 5 ))
-            dx = [(pos[i], '%i'%(tick[i])) for i in range( len(pos ))   ]
-            ax.setTicks([dx, []])
-            ax2.setTicks([dx, []] )      
+            if (self.mainWin.xrange is not None) and (self.mainWin.yrange is not None):
+                self.mainWin.plt.setLabels( left = self.mainWin.ylabel, bottom=self.mainWin.xlabel)
+                ax = self.mainWin.plt.getAxis('bottom')
+                ax2 = self.mainWin.plt.getAxis('left')
+                pos = np.int_(np.linspace(0, self.mainWin.value.shape[0], 5 ))
+                tick = np.linspace(self.mainWin.xrange[0], self.mainWin.xrange[1], 5 )
+                dx = [(pos[i], '%.3f'%(tick[i])) for i in range( len(pos ))   ]
+                ax.setTicks([dx, []])
+                pos = np.int_(np.linspace(0, self.mainWin.value.shape[1], 5 ))
+                tick = np.linspace(self.mainWin.yrange[0], self.mainWin.yrange[1], 5 )
+                dx = [(pos[i], '%.3f'%(tick[i])) for i in range( len(pos ))   ]  
+                ax2.setTicks([dx, []] )                  
+            else:    
+                self.mainWin.plt.setLabels( left = 'Y', bottom='X')
+                ax = self.mainWin.plt.getAxis('bottom')
+                ax2 = self.mainWin.plt.getAxis('left')
+                pos = np.int_(np.linspace(0, self.mainWin.value.shape[0], 5 ))
+                tick = np.int_(np.linspace(0, self.mainWin.value.shape[0], 5 ))
+                dx = [(pos[i], '%i'%(tick[i])) for i in range( len(pos ))   ]
+                ax.setTicks([dx, []])
+                pos = np.int_(np.linspace(0, self.mainWin.value.shape[1], 5 ))
+                tick = np.int_(np.linspace(0, self.mainWin.value.shape[1], 5 ))
+                dx = [(pos[i], '%i'%(tick[i])) for i in range( len(pos ))   ]                
+                ax2.setTicks([dx, []] )   
+
             
         #print( self.mainWin.cmap )    
         self.mainWin.guiplot.setColorMap( self.mainWin.cmap ) 

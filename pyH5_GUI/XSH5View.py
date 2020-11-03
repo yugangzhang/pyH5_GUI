@@ -18,6 +18,7 @@ import H5Tree as ht
 from PyQt5.QtCore import pyqtSlot
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
+import os
 
 try:
     from Ipython_Widget import ConsoleWidget
@@ -40,8 +41,9 @@ except:
 import sip
 #from chx_format import *
 from Plot import *
- 
 
+        
+            
 class mainWindow(QMainWindow):
     def __init__(self):
         super(mainWindow, self).__init__() 
@@ -581,11 +583,30 @@ class mainWindow(QMainWindow):
         
     def display_dataset(self):
         self.get_filename_selected()
-        text = self.current_item_path  #self.item.text(2)
+        text = self.current_item_path  #self.item.text(2)           
         if self.current_item_path != '':
             hdf5_file  = self.current_hdf5_item
             if isinstance(hdf5_file, h5py.Dataset):
                 print( 'shows dataset-------------->')
+                try:
+                    uplayer = os.path.dirname( text )         
+                    #print( '*' * 40)
+                    #print('The upper item path is: %s'%uplayer )
+                    #print( '*' * 40) 
+                    ks = list( self.current_hdf5[ uplayer ] )
+                    #print( ks ) 
+                    for xl in xlabel_global:
+                        #print( xl )
+                        if xl in ks:
+                            self.xrange = np.array( self.current_hdf5[ uplayer + '/%s/'%xl ] )
+                            self.xlabel = xl[:-6]
+                    for yl in ylabel_global:
+                        #print( yl )
+                        if yl in ks:
+                            self.yrange = np.array( self.current_hdf5[ uplayer + '/%s/'%yl ] )
+                            self.ylabel = yl[:-6]
+                except:
+                    self.xrange, self.yrange = None, None
                 self.group_data = False
                 #self.current_dataset = self.item_path.split('/')[-1]				
                 shape = hdf5_file.shape
